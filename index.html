@@ -472,9 +472,16 @@ const msalConfig = {
   cache: { cacheLocation: "sessionStorage" }
 };
 
-const msalInstance = new msal.PublicClientApplication(msalConfig);
+let msalInstance = null;
 const scopes = ["Files.ReadWrite", "Sites.ReadWrite.All", "User.Read"];
-const msalReady = msalInstance.initialize();
+
+async function getMsal() {
+  if (!msalInstance) {
+    msalInstance = new msal.PublicClientApplication(msalConfig);
+    await msalInstance.initialize();
+  }
+  return msalInstance;
+}
 
 let currentUser = null;
 let isAdmin = false;
@@ -486,9 +493,9 @@ let activeFilters = { brand: null, model: null, category: null };
 // ══════════════════════════════════════════════
 async function signIn() {
   try {
-    await msalReady;
-    const result = await msalInstance.loginPopup({ scopes });
-    msalInstance.setActiveAccount(result.account);
+    const msal_ = await getMsal();
+    const result = await msal_.loginPopup({ scopes });
+    msal_.setActiveAccount(result.account);
     await initApp(result.account);
   } catch(e) {
     console.error(e);
@@ -496,16 +503,18 @@ async function signIn() {
   }
 }
 
-function signOut() {
-  msalInstance.logoutPopup();
+async function signOut() {
+  const msal_ = await getMsal();
+  msal_.logoutPopup();
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.body.classList.remove('is-admin');
 }
 
 async function getToken() {
-  const account = msalInstance.getActiveAccount();
-  const result = await msalInstance.acquireTokenSilent({ scopes, account });
+  const msal_ = await getMsal();
+  const account = msal_.getActiveAccount();
+  const result = await msal_.acquireTokenSilent({ scopes, account });
   return result.accessToken;
 }
 
@@ -530,10 +539,10 @@ async function initApp(account) {
 
 // Chequear si ya hay sesión activa al cargar
 window.addEventListener('load', async () => {
-  await msalReady;
-  const accounts = msalInstance.getAllAccounts();
+  const msal_ = await getMsal();
+  const accounts = msal_.getAllAccounts();
   if (accounts.length > 0) {
-    msalInstance.setActiveAccount(accounts[0]);
+    msal_.setActiveAccount(accounts[0]);
     await initApp(accounts[0]);
   }
 });
