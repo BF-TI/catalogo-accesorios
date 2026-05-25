@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Accesorios Vehículos</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0d0d0f;
+      --surface: #16161a;
+      --surface2: #1e1e24;
+      --border: #2a2a35;
+      --accent: #e8342a;
+      --accent2: #ff6b35;
+      --text: #f0f0f2;
+      --muted: #7a7a8c;
+      --success: #22c55e;
+      --warning: #f59e0b;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 2px;
+      color: var(--text);
+    }
+    .logo span { color: var(--accent); }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+    }
+    .user-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 0.85rem;
+    }
+    .admin-badge {
+      background: var(--accent);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .btn-logout {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── LOGIN SCREEN ── */
+    #login-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 2rem;
+      background: radial-gradient(ellipse at 50% 0%, #1a0a08 0%, var(--bg) 70%);
+    }
+    .login-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 3rem 3.5rem;
+      text-align: center;
+      max-width: 420px;
+      width: 90%;
+    }
+    .login-box h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      letter-spacing: 3px;
+      margin-bottom: 0.5rem;
+    }
+    .login-box h1 span { color: var(--accent); }
+    .login-box p { color: var(--muted); margin-bottom: 2rem; font-size: 0.95rem; }
+    .btn-ms {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      background: #2f2f37;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 28px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      width: 100%;
+      transition: all 0.2s;
+    }
+    .btn-ms:hover { background: #3a3a45; border-color: #4a4a58; transform: translateY(-1px); }
+    .ms-icon { width: 20px; height: 20px; }
+
+    /* ── MAIN LAYOUT ── */
+    #app { display: none; }
+    .layout { display: flex; min-height: calc(100vh - 64px); }
+
+    /* ── SIDEBAR ── */
+    aside {
+      width: 280px;
+      min-width: 280px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 1rem;
+      overflow-y: auto;
+    }
+    .filter-section { margin-bottom: 1.5rem; }
+    .filter-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      padding: 0 0.5rem;
+    }
+    .filter-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+    }
+    .filter-btn:hover { background: var(--surface2); }
+    .filter-btn.active { background: var(--accent); color: white; font-weight: 500; }
+    .filter-count {
+      float: right;
+      font-size: 0.75rem;
+      background: var(--surface2);
+      padding: 1px 7px;
+      border-radius: 10px;
+      color: var(--muted);
+    }
+    .filter-btn.active .filter-count { background: rgba(255,255,255,0.2); color: white; }
+
+    /* ── CONTENT ── */
+    main { flex: 1; padding: 2rem; overflow-y: auto; }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      max-width: 380px;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 12px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+    }
+    #search {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px 10px 40px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #search:focus { border-color: var(--accent); }
+    #search::placeholder { color: var(--muted); }
+    .results-count { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+
+    /* ── GRID ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+      position: relative;
+    }
+    .card:hover { transform: translateY(-3px); border-color: #3a3a48; }
+    .card.inactive { opacity: 0.45; }
+    .card-img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      background: var(--surface2);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card-img img { width:100%; height:100%; object-fit:cover; display:block; }
+    .card-img-placeholder {
+      width:100%; aspect-ratio:4/3;
+      background: var(--surface2);
+      display:flex; align-items:center; justify-content:center;
+      color: var(--muted); font-size:2.5rem;
+    }
+    .card-body { padding: 1rem; }
+    .card-tags {
+      display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.6rem;
+    }
+    .tag {
+      font-size: 0.68rem; font-weight: 600;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 4px;
+    }
+    .tag-brand { background: #1e1e2e; color: #a0a0c0; border: 1px solid #2a2a40; }
+    .tag-model { background: #1a1a12; color: #b0a060; border: 1px solid #2a2a18; }
+    .card-name { font-size: 0.95rem; font-weight: 500; margin-bottom: 0.3rem; }
+    .card-sku { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.75rem; }
+    .card-price { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 1px; color: var(--accent2); }
+    .card-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 0.75rem; padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+    .status-dot {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 0.78rem; color: var(--muted);
+    }
+    .dot { width:7px; height:7px; border-radius:50%; }
+    .dot.on { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .dot.off { background: var(--muted); }
+
+    /* ── TOGGLE ADMIN ── */
+    .toggle {
+      position: relative; width: 42px; height: 22px;
+      display: none;
+    }
+    .toggle input { opacity:0; width:0; height:0; }
+    .slider {
+      position: absolute; inset:0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 22px; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .slider:before {
+      content:''; position:absolute;
+      width:16px; height:16px;
+      left:2px; top:2px;
+      background: var(--muted);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle input:checked + .slider { background: #0a2010; border-color: var(--success); }
+    .toggle input:checked + .slider:before { transform: translateX(20px); background: var(--success); }
+    body.is-admin .toggle { display:block; }
+
+    /* ── INACTIVE BANNER ── */
+    .inactive-banner {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,0.8);
+      color: var(--muted);
+      font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    body:not(.is-admin) .card.inactive { display: none; }
+
+    /* ── LOADING / EMPTY ── */
+    .loading, .empty {
+      text-align: center; padding: 4rem 2rem;
+      color: var(--muted);
+    }
+    .loading-spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      padding: 12px 20px; border-radius: 8px;
+      font-size: 0.85rem; opacity: 0;
+      transition: opacity 0.3s; pointer-events: none; z-index: 999;
+    }
+    #toast.show { opacity: 1; }
+
+    /* ── SYNC BUTTON ── */
+    .btn-sync {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-family: 'DM Sans', sans-serif;
+      display: flex; align-items: center; gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .btn-sync:hover { border-color: var(--accent); color: var(--accent); }
+
+    @media (max-width: 768px) {
+      aside { display: none; }
+      main { padding: 1rem; }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>ACCESORIOS<span>.</span></h1>
+    <p>Catálogo de accesorios para vehículos nuevos</p>
+    <button class="btn-ms" onclick="signIn()">
+      <svg class="ms-icon" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+        <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+        <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+        <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+      </svg>
+      Ingresar con Microsoft
+    </button>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <header>
+    <div class="logo">ACCESORIOS<span>.</span></div>
+    <div class="user-info">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <span id="user-name">—</span>
+      <span class="admin-badge" id="admin-badge" style="display:none">Admin</span>
+      <button class="btn-logout" onclick="signOut()">Salir</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside>
+      <div class="filter-section">
+        <div class="filter-label">Marca</div>
+        <div id="brand-filters"></div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-label">Modelo</div>
+        <div id="model-filters"></div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-label">Categoría</div>
+        <div id="category-filters"></div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input id="search" type="text" placeholder="Buscar accesorio..."/>
+        </div>
+        <span class="results-count" id="results-count">— productos</span>
+        <button class="btn-sync" onclick="loadData()" title="Sincronizar con SharePoint">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          Sincronizar
+        </button>
+      </div>
+
+      <div id="grid-container">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p>Cargando catálogo...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- MSAL -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-authentication-library/3.11.0/msal-browser.min.js"></script>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIGURACIÓN — editar según tu tenant
+// ══════════════════════════════════════════════
+const CONFIG = {
+  // 1. Registrá una app en portal.azure.com → Azure Active Directory → App registrations
+  clientId: "20e10f55-888a-45b9-a78e-74acbe97f83d",
+
+  // 2. Tu tenant ID (lo ves en Azure AD → Overview)
+  tenantId: "bc44fd2e-3525-494d-99c4-234205cd0468",
+
+  // 3. Email del administrador (solo este usuario ve los toggles)
+  adminEmail: "svillablanca@brunofritsch.cl",
+
+  // 4. URL del archivo Excel en SharePoint (Graph API path)
+  // Formato: /sites/{site-id}/drives/{drive-id}/items/{item-id}
+  // Lo obtenés desde: https://graph.microsoft.com/v1.0/me/drive/root
+  excelDriveItem: "/me/drive/root:/Accesorios/catalogo.xlsx:",
+
+  // 5. Nombre de la hoja dentro del Excel
+  sheetName: "Catalogo",
+};
+
+// ══════════════════════════════════════════════
+//  MSAL SETUP
+// ══════════════════════════════════════════════
+const msalConfig = {
+  auth: {
+    clientId: CONFIG.clientId,
+    authority: `https://login.microsoftonline.com/${CONFIG.tenantId}`,
+    redirectUri: window.location.href.split('?')[0],
+  },
+  cache: { cacheLocation: "sessionStorage" }
+};
+
+const msalInstance = new msal.PublicClientApplication(msalConfig);
+const scopes = ["Files.ReadWrite", "Sites.ReadWrite.All", "User.Read"];
+
+let currentUser = null;
+let isAdmin = false;
+let allData = [];
+let activeFilters = { brand: null, model: null, category: null };
+
+// ══════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════
+async function signIn() {
+  try {
+    const result = await msalInstance.loginPopup({ scopes });
+    msalInstance.setActiveAccount(result.account);
+    await initApp(result.account);
+  } catch(e) {
+    console.error(e);
+    toast("Error al iniciar sesión: " + e.message);
+  }
+}
+
+function signOut() {
+  msalInstance.logoutPopup();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.body.classList.remove('is-admin');
+}
+
+async function getToken() {
+  const account = msalInstance.getActiveAccount();
+  const result = await msalInstance.acquireTokenSilent({ scopes, account });
+  return result.accessToken;
+}
+
+async function initApp(account) {
+  currentUser = account;
+  isAdmin = account.username.toLowerCase() === CONFIG.adminEmail.toLowerCase();
+
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  const initials = (account.name || account.username).split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-name').textContent = account.name || account.username;
+
+  if (isAdmin) {
+    document.body.classList.add('is-admin');
+    document.getElementById('admin-badge').style.display = 'inline';
+  }
+
+  await loadData();
+}
+
+// Chequear si ya hay sesión activa al cargar
+window.addEventListener('load', async () => {
+  await msalInstance.initialize();
+  const accounts = msalInstance.getAllAccounts();
+  if (accounts.length > 0) {
+    msalInstance.setActiveAccount(accounts[0]);
+    await initApp(accounts[0]);
+  }
+});
+
+// ══════════════════════════════════════════════
+//  GRAPH API — LEER EXCEL
+// ══════════════════════════════════════════════
+async function loadData() {
+  const container = document.getElementById('grid-container');
+  container.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>Cargando desde SharePoint...</p></div>';
+
+  try {
+    const token = await getToken();
+    // Leer filas del Excel via Graph API
+    const url = `https://graph.microsoft.com/v1.0${CONFIG.excelDriveItem}/workbook/worksheets/${CONFIG.sheetName}/usedRange`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error(`Graph API: ${res.status} ${res.statusText}`);
+
+    const json = await res.json();
+    allData = parseExcel(json.values);
+    buildFilters();
+    renderGrid();
+    toast(`✓ ${allData.length} accesorios cargados`);
+  } catch(e) {
+    console.error(e);
+    container.innerHTML = `
+      <div class="empty">
+        <p style="font-size:2rem;margin-bottom:1rem;">⚠️</p>
+        <p>No se pudo conectar con SharePoint.</p>
+        <p style="font-size:0.8rem;margin-top:0.5rem;color:#555">${e.message}</p>
+        <p style="font-size:0.8rem;margin-top:0.5rem">Verificá la configuración en config.js</p>
+      </div>`;
+  }
+}
+
+// ══════════════════════════════════════════════
+//  PARSEAR EXCEL
+//  Columnas esperadas: A=ID B=Nombre C=Marca D=Modelo E=Categoria F=SKU G=Precio H=ImagenURL I=Activo
+// ══════════════════════════════════════════════
+function parseExcel(values) {
+  if (!values || values.length < 2) return [];
+  // Primera fila = headers, ignorar
+  return values.slice(1).map(row => ({
+    id:         row[0] || '',
+    nombre:     row[1] || '',
+    marca:      row[2] || '',
+    modelo:     row[3] || '',
+    categoria:  row[4] || '',
+    sku:        row[5] || '',
+    precio:     row[6] || '',
+    imagenUrl:  row[7] || '',
+    activo:     String(row[8]).toLowerCase() === 'si' || row[8] === true || row[8] === 1,
+    rowIndex:   values.indexOf(row) + 1, // para escribir de vuelta
+  })).filter(r => r.nombre);
+}
+
+// ══════════════════════════════════════════════
+//  ACTUALIZAR CELDA EN EXCEL (toggle activo/inactivo)
+// ══════════════════════════════════════════════
+async function toggleActivo(item, newValue) {
+  try {
+    const token = await getToken();
+    // La columna I (índice 8) = Activo. Fila = item.rowIndex + 1 (por header)
+    const address = `I${item.rowIndex + 1}`; // +1 por el header
+    const url = `https://graph.microsoft.com/v1.0${CONFIG.excelDriveItem}/workbook/worksheets/${CONFIG.sheetName}/range(address='${address}')`;
+
+    await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ values: [[newValue ? 'Si' : 'No']] })
+    });
+
+    item.activo = newValue;
+    toast(newValue ? '✓ Accesorio activado' : '○ Accesorio desactivado');
+  } catch(e) {
+    console.error(e);
+    toast('Error al guardar: ' + e.message);
+  }
+}
+
+// ══════════════════════════════════════════════
+//  FILTROS
+// ══════════════════════════════════════════════
+function buildFilters() {
+  const brands    = [...new Set(allData.map(d => d.marca).filter(Boolean))].sort();
+  const models    = [...new Set(allData.map(d => d.modelo).filter(Boolean))].sort();
+  const categories = [...new Set(allData.map(d => d.categoria).filter(Boolean))].sort();
+
+  renderFilterList('brand-filters', brands, 'brand', 'marca');
+  renderFilterList('model-filters', models, 'model', 'modelo');
+  renderFilterList('category-filters', categories, 'category', 'categoria');
+}
+
+function renderFilterList(containerId, items, filterKey, dataKey) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  const allBtn = document.createElement('button');
+  allBtn.className = 'filter-btn' + (activeFilters[filterKey] === null ? ' active' : '');
+  allBtn.textContent = 'Todos';
+  allBtn.onclick = () => setFilter(filterKey, null);
+  container.appendChild(allBtn);
+
+  items.forEach(item => {
+    const count = allData.filter(d => d[dataKey] === item).length;
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn' + (activeFilters[filterKey] === item ? ' active' : '');
+    btn.innerHTML = `${item} <span class="filter-count">${count}</span>`;
+    btn.onclick = () => setFilter(filterKey, item);
+    container.appendChild(btn);
+  });
+}
+
+function setFilter(key, value) {
+  activeFilters[key] = value;
+  // Resetear modelo si cambia marca
+  if (key === 'brand') {
+    activeFilters.model = null;
+    // Re-filtrar modelos según marca
+    const modelsForBrand = value
+      ? [...new Set(allData.filter(d => d.marca === value).map(d => d.modelo).filter(Boolean))].sort()
+      : [...new Set(allData.map(d => d.modelo).filter(Boolean))].sort();
+    renderFilterList('model-filters', modelsForBrand, 'model', 'modelo');
+  }
+  buildFilters();
+  renderGrid();
+}
+
+// ══════════════════════════════════════════════
+//  RENDER GRID
+// ══════════════════════════════════════════════
+function renderGrid() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const container = document.getElementById('grid-container');
+
+  let filtered = allData.filter(item => {
+    if (activeFilters.brand    && item.marca     !== activeFilters.brand)    return false;
+    if (activeFilters.model    && item.modelo    !== activeFilters.model)    return false;
+    if (activeFilters.category && item.categoria !== activeFilters.category) return false;
+    if (q && !`${item.nombre} ${item.sku} ${item.marca} ${item.modelo}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  document.getElementById('results-count').textContent = `${filtered.length} accesorio${filtered.length !== 1 ? 's' : ''}`;
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty"><p style="font-size:2rem;margin-bottom:0.5rem">🔍</p><p>Sin resultados</p></div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+
+  filtered.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'card' + (item.activo ? '' : ' inactive');
+
+    const imgHtml = item.imagenUrl
+      ? `<div class="card-img"><img src="${item.imagenUrl}" alt="${item.nombre}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\"card-img-placeholder\\">📦</div>'"/></div>`
+      : `<div class="card-img-placeholder">📦</div>`;
+
+    const precio = item.precio
+      ? `<div class="card-price">$${Number(item.precio).toLocaleString('es-CL')}</div>`
+      : '';
+
+    card.innerHTML = `
+      ${!item.activo ? '<span class="inactive-banner">No disponible</span>' : ''}
+      ${imgHtml}
+      <div class="card-body">
+        <div class="card-tags">
+          ${item.marca  ? `<span class="tag tag-brand">${item.marca}</span>` : ''}
+          ${item.modelo ? `<span class="tag tag-model">${item.modelo}</span>` : ''}
+        </div>
+        <div class="card-name">${item.nombre}</div>
+        ${item.sku ? `<div class="card-sku">SKU: ${item.sku}</div>` : ''}
+        ${precio}
+        <div class="card-footer">
+          <div class="status-dot">
+            <span class="dot ${item.activo ? 'on' : 'off'}"></span>
+            ${item.activo ? 'Disponible' : 'No disponible'}
+          </div>
+          <label class="toggle" title="${item.activo ? 'Desactivar' : 'Activar'}">
+            <input type="checkbox" ${item.activo ? 'checked' : ''} 
+              onchange="toggleActivo(allData.find(d=>d.id==='${item.id}'), this.checked); 
+                        this.closest('.card').classList.toggle('inactive', !this.checked);
+                        this.closest('.card').querySelector('.dot').className='dot '+(this.checked?'on':'off');
+                        this.closest('.card').querySelector('.status-dot').lastChild.textContent=' '+(this.checked?'Disponible':'No disponible');"/>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>`;
+
+    grid.appendChild(card);
+  });
+
+  container.appendChild(grid);
+}
+
+document.getElementById('search')?.addEventListener('input', renderGrid);
+
+// ══════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
