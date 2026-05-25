@@ -485,6 +485,7 @@ let activeFilters = { brand: null, model: null, category: null };
 // ══════════════════════════════════════════════
 async function signIn() {
   try {
+    await msalInstance.initialize();
     const result = await msalInstance.loginPopup({ scopes });
     msalInstance.setActiveAccount(result.account);
     await initApp(result.account);
