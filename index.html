@@ -474,6 +474,7 @@ const msalConfig = {
 
 const msalInstance = new msal.PublicClientApplication(msalConfig);
 const scopes = ["Files.ReadWrite", "Sites.ReadWrite.All", "User.Read"];
+const msalReady = msalInstance.initialize();
 
 let currentUser = null;
 let isAdmin = false;
@@ -485,7 +486,7 @@ let activeFilters = { brand: null, model: null, category: null };
 // ══════════════════════════════════════════════
 async function signIn() {
   try {
-    await msalInstance.initialize();
+    await msalReady;
     const result = await msalInstance.loginPopup({ scopes });
     msalInstance.setActiveAccount(result.account);
     await initApp(result.account);
@@ -529,7 +530,7 @@ async function initApp(account) {
 
 // Chequear si ya hay sesión activa al cargar
 window.addEventListener('load', async () => {
-  await msalInstance.initialize();
+  await msalReady;
   const accounts = msalInstance.getAllAccounts();
   if (accounts.length > 0) {
     msalInstance.setActiveAccount(accounts[0]);
