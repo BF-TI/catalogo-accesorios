@@ -523,13 +523,20 @@ const CONFIG = {
   // 3. Email del administrador (solo este usuario ve los toggles)
   adminEmail: "svillablanca@brunofritsch.cl",
 
-  // 4. URL del archivo Excel en SharePoint (Graph API path)
-  // Formato: /sites/{site-id}/drives/{drive-id}/items/{item-id}
-  // Lo obtenés desde: https://graph.microsoft.com/v1.0/me/drive/root
-  excelDriveItem: "/me/drive/root:/Accesorios/catalogo.xlsx:",
+  // 4. Ruta del Excel en SharePoint
+  excelPath: "CATALOGO_ACC/PAGINA WEB/catalogo.xlsx",
 
-  // 5. Nombre de la hoja dentro del Excel
-  sheetName: "Catalogo",
+  // 5. Ruta de la carpeta de imágenes en SharePoint
+  imageFolder: "CATALOGO_ACC/PAGINA WEB/Fotos accesorios",
+
+  // 6. Nombre del sitio SharePoint
+  sitePath: "/sites/CATALOGO_ACC",
+
+  // 7. Nombre de la biblioteca de documentos
+  driveRoot: "Documentos compartidos",
+
+  // 8. Nombre de la hoja dentro del Excel
+  sheetName: "Hoja1",
 };
 
 // ══════════════════════════════════════════════
@@ -628,13 +635,34 @@ async function loadData() {
 
   try {
     const token = await getToken();
-    // Leer filas del Excel via Graph API
-    const url = `https://graph.microsoft.com/v1.0${CONFIG.excelDriveItem}/workbook/worksheets/${CONFIG.sheetName}/usedRange`;
-    const res = await fetch(url, {
+
+    // Obtener el site ID
+    const siteRes = await fetch(`https://graph.microsoft.com/v1.0/sites/brunofritsch.sharepoint.com:${CONFIG.sitePath}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!siteRes.ok) throw new Error(`Site: ${siteRes.status} ${siteRes.statusText}`);
+    const siteData = await siteRes.json();
+    const siteId = siteData.id;
+
+    // Obtener la biblioteca de documentos
+    const drivesRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const drivesData = await drivesRes.json();
+    const drive = drivesData.value.find(d => d.name === CONFIG.driveRoot) || drivesData.value[0];
+    const driveId = drive.id;
+
+    // Guardar para imágenes
+    window._driveId = driveId;
+    window._siteId = siteId;
+
+    // Leer Excel
+    const excelUrl = `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${CONFIG.excelPath}:/workbook/worksheets/${CONFIG.sheetName}/usedRange`;
+    const res = await fetch(excelUrl, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (!res.ok) throw new Error(`Graph API: ${res.status} ${res.statusText}`);
+    if (!res.ok) throw new Error(`Excel: ${res.status} ${res.statusText}`);
 
     const json = await res.json();
     allData = parseExcel(json.values);
@@ -659,19 +687,32 @@ async function loadData() {
 // ══════════════════════════════════════════════
 function parseExcel(values) {
   if (!values || values.length < 2) return [];
-  // Primera fila = headers, ignorar
-  return values.slice(1).map(row => ({
-    id:         row[0] || '',
+  return values.slice(1).map((row, i) => ({
+    id:         String(row[0] || i+1),
     nombre:     row[1] || '',
     marca:      row[2] || '',
-    modelo:     row[3] || '',
+    modelos:    String(row[3] || '').split(',').map(m => m.trim()).filter(Boolean),
     categoria:  row[4] || '',
     sku:        row[5] || '',
     precio:     row[6] || '',
-    imagenUrl:  row[7] || '',
+    imagenFile: row[7] || '',   // solo el nombre del archivo
     activo:     String(row[8]).toLowerCase() === 'si' || row[8] === true || row[8] === 1,
-    rowIndex:   values.indexOf(row) + 1, // para escribir de vuelta
+    rowIndex:   i + 2,          // +2 por header y base-1
   })).filter(r => r.nombre);
+}
+
+// Carga imagen autenticada desde SharePoint
+async function getImageUrl(filename) {
+  if (!filename) return null;
+  try {
+    const token = await getToken();
+    const path = encodeURIComponent(CONFIG.imageFolder + '/' + filename);
+    const url = `https://graph.microsoft.com/v1.0/drives/${window._driveId}/root:/${CONFIG.imageFolder}/${filename}:/content`;
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
+  } catch { return null; }
 }
 
 // ══════════════════════════════════════════════
@@ -706,11 +747,11 @@ async function toggleActivo(item, newValue) {
 // ══════════════════════════════════════════════
 function buildFilters() {
   const brands    = [...new Set(allData.map(d => d.marca).filter(Boolean))].sort();
-  const models    = [...new Set(allData.map(d => d.modelo).filter(Boolean))].sort();
+  const models    = [...new Set(allData.flatMap(d => d.modelos || []).filter(Boolean))].sort();
   const categories = [...new Set(allData.map(d => d.categoria).filter(Boolean))].sort();
 
   renderFilterList('brand-filters', brands, 'brand', 'marca');
-  renderFilterList('model-filters', models, 'model', 'modelo');
+  renderFilterList('model-filters', models, 'model', 'modelos');
   renderFilterList('category-filters', categories, 'category', 'categoria');
 }
 
@@ -725,7 +766,9 @@ function renderFilterList(containerId, items, filterKey, dataKey) {
   container.appendChild(allBtn);
 
   items.forEach(item => {
-    const count = allData.filter(d => d[dataKey] === item).length;
+    const count = allData.filter(d => 
+      Array.isArray(d[dataKey]) ? d[dataKey].includes(item) : d[dataKey] === item
+    ).length;
     const btn = document.createElement('button');
     btn.className = 'filter-btn' + (activeFilters[filterKey] === item ? ' active' : '');
     btn.innerHTML = `${item} <span class="filter-count">${count}</span>`;
@@ -736,14 +779,12 @@ function renderFilterList(containerId, items, filterKey, dataKey) {
 
 function setFilter(key, value) {
   activeFilters[key] = value;
-  // Resetear modelo si cambia marca
   if (key === 'brand') {
     activeFilters.model = null;
-    // Re-filtrar modelos según marca
     const modelsForBrand = value
-      ? [...new Set(allData.filter(d => d.marca === value).map(d => d.modelo).filter(Boolean))].sort()
-      : [...new Set(allData.map(d => d.modelo).filter(Boolean))].sort();
-    renderFilterList('model-filters', modelsForBrand, 'model', 'modelo');
+      ? [...new Set(allData.filter(d => d.marca === value).flatMap(d => d.modelos || []).filter(Boolean))].sort()
+      : [...new Set(allData.flatMap(d => d.modelos || []).filter(Boolean))].sort();
+    renderFilterList('model-filters', modelsForBrand, 'model', 'modelos');
   }
   buildFilters();
   renderGrid();
@@ -757,10 +798,10 @@ function renderGrid() {
   const container = document.getElementById('grid-container');
 
   let filtered = allData.filter(item => {
-    if (activeFilters.brand    && item.marca     !== activeFilters.brand)    return false;
-    if (activeFilters.model    && item.modelo    !== activeFilters.model)    return false;
+    if (activeFilters.brand    && item.marca !== activeFilters.brand) return false;
+    if (activeFilters.model    && !(item.modelos || []).includes(activeFilters.model)) return false;
     if (activeFilters.category && item.categoria !== activeFilters.category) return false;
-    if (q && !`${item.nombre} ${item.sku} ${item.marca} ${item.modelo}`.toLowerCase().includes(q)) return false;
+    if (q && !`${item.nombre} ${item.sku} ${item.marca} ${(item.modelos||[]).join(' ')}`.toLowerCase().includes(q)) return false;
     return true;
   });
 
@@ -779,9 +820,28 @@ function renderGrid() {
     const card = document.createElement('div');
     card.className = 'card' + (item.activo ? '' : ' inactive');
 
-    const imgHtml = item.imagenUrl
-      ? `<div class="card-img"><img src="${item.imagenUrl}" alt="${item.nombre}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\"card-img-placeholder\\">📦</div>'"/></div>`
-      : `<div class="card-img-placeholder">📦</div>`;
+    // Placeholder mientras carga la imagen
+    const imgDiv = document.createElement('div');
+    imgDiv.className = 'card-img';
+    imgDiv.innerHTML = '<span style="font-size:2.5rem">📦</span>';
+    if (item.imagenFile) {
+      getImageUrl(item.imagenFile).then(url => {
+        if (url) imgDiv.innerHTML = `<img src="${url}" alt="${item.nombre}" style="width:100%;height:100%;object-fit:cover;display:block;"/>`;
+      });
+    }
+
+    // Etiquetas de modelos: máx 2 visibles, resto → "N modelos"
+    const modelos = item.modelos || [];
+    let modeloTags = '';
+    if (modelos.length === 0) {
+      modeloTags = '';
+    } else if (modelos.length <= 2) {
+      modeloTags = modelos.map(m => `<span class="tag tag-model">${m}</span>`).join('');
+    } else if (modelos.length <= 4) {
+      modeloTags = `<span class="tag tag-model" title="${modelos.join(', ')}">${modelos[0]}, +${modelos.length-1} más</span>`;
+    } else {
+      modeloTags = `<span class="tag tag-model" title="${modelos.join(', ')}">Varios modelos</span>`;
+    }
 
     const precio = item.precio
       ? `<div class="card-price">$${Number(item.precio).toLocaleString('es-CL')}</div>`
@@ -789,11 +849,10 @@ function renderGrid() {
 
     card.innerHTML = `
       ${!item.activo ? '<span class="inactive-banner">No disponible</span>' : ''}
-      ${imgHtml}
       <div class="card-body">
         <div class="card-tags">
-          ${item.marca  ? `<span class="tag tag-brand">${item.marca}</span>` : ''}
-          ${item.modelo ? `<span class="tag tag-model">${item.modelo}</span>` : ''}
+          ${item.marca ? `<span class="tag tag-brand">${item.marca}</span>` : ''}
+          ${modeloTags}
         </div>
         <div class="card-name">${item.nombre}</div>
         ${item.sku ? `<div class="card-sku">SKU: ${item.sku}</div>` : ''}
@@ -814,6 +873,7 @@ function renderGrid() {
         </div>
       </div>`;
 
+    card.insertBefore(imgDiv, card.firstChild);
     grid.appendChild(card);
   });
 
