@@ -636,18 +636,14 @@ async function loadData() {
   try {
     const token = await getToken();
 
-    // Obtener el site ID
-    const siteRes = await fetch(`https://graph.microsoft.com/v1.0/sites/brunofritsch.sharepoint.com:${CONFIG.sitePath}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (!siteRes.ok) throw new Error(`Site: ${siteRes.status} ${siteRes.statusText}`);
-    const siteData = await siteRes.json();
-    const siteId = siteData.id;
+    // Site ID hardcodeado (obtenido via Graph API)
+    const siteId = "brunofritsch.sharepoint.com,8dcbd9be-ce13-459b-838a-582cc47b6557,b950ec79-7589-489b-95dd-1122d3def25e";
 
     // Obtener la biblioteca de documentos
     const drivesRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`, {
       headers: { Authorization: `Bearer ${token}` }
     });
+    if (!drivesRes.ok) throw new Error(`Drives: ${drivesRes.status} ${drivesRes.statusText}`);
     const drivesData = await drivesRes.json();
     const drive = drivesData.value.find(d => d.name === CONFIG.driveRoot) || drivesData.value[0];
     const driveId = drive.id;
