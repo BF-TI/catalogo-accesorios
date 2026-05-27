@@ -721,7 +721,7 @@ async function toggleActivo(item, newValue) {
   try {
     const token = await getToken();
     // La columna I (índice 8) = Activo. Fila = item.rowIndex + 1 (por header)
-    const address = `I${item.rowIndex + 1}`; // +1 por el header
+    const address = `I${item.rowIndex}`; // rowIndex ya incluye header
     const url = `https://graph.microsoft.com/v1.0/drives/${window._driveId}/items/${CONFIG.excelFileId}/workbook/worksheets/${CONFIG.sheetName}/range(address='${address}')`;
 
     await fetch(url, {
