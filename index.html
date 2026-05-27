@@ -101,7 +101,7 @@
     /* LIGHTBOX */
     .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .3s;}
     .lightbox.show{opacity:1;pointer-events:all;}
-    .lightbox img{max-width:90%;max-height:85vh;border-radius:8px;object-fit:contain;}
+    .lightbox img{width:90vw;height:85vh;border-radius:8px;object-fit:contain;background:var(--surface);}
     .lightbox-close{position:absolute;top:20px;right:24px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem;transition:all .2s;}
     .lightbox-close:hover{background:rgba(255,255,255,.25);}
     .lightbox-title{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.7);font-size:.9rem;text-align:center;}
@@ -114,6 +114,9 @@
     /* TOAST */
     #toast{position:fixed;bottom:2rem;right:2rem;background:var(--surface2);border:1px solid var(--border);padding:12px 20px;border-radius:8px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
     #toast.show{opacity:1;}
+
+    .btn-mode{background:none;border:1px solid var(--accent2);color:var(--accent2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.78rem;font-family:'DM Sans',sans-serif;transition:all .2s;letter-spacing:.5px;}
+    .btn-mode:hover{background:var(--accent2);color:white;}
 
     @media(max-width:768px){aside{display:none;}main{padding:1rem;}.grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}}
   </style>
@@ -140,6 +143,7 @@
       <div class="user-avatar" id="user-avatar">?</div>
       <span id="user-name"></span>
       <span class="admin-badge" id="admin-badge" style="display:none">Admin</span>
+      <button class="btn-mode" id="btn-mode" style="display:none" onclick="toggleMode()">Ver como vendedor</button>
       <button class="btn-logout" onclick="signOut()">Salir</button>
     </div>
   </header>
@@ -348,6 +352,8 @@ async function initApp(account) {
   if (isAdmin) {
     document.body.classList.add('is-admin');
     document.getElementById('admin-badge').style.display = 'inline';
+    document.getElementById('btn-mode').style.display = 'inline';
+    viewingAsAdmin = true;
   }
 
   await loadData();
@@ -669,6 +675,25 @@ function closeLightbox() {
 }
 
 document.addEventListener('keydown', function(e) { if(e.key === 'Escape') closeLightbox(); });
+
+// MODE TOGGLE
+var viewingAsAdmin = true;
+function toggleMode() {
+  viewingAsAdmin = !viewingAsAdmin;
+  var btn = document.getElementById('btn-mode');
+  if (viewingAsAdmin) {
+    document.body.classList.add('is-admin');
+    btn.textContent = 'Ver como vendedor';
+    document.getElementById('admin-badge').textContent = 'Admin';
+    document.getElementById('admin-badge').style.background = 'var(--accent)';
+  } else {
+    document.body.classList.remove('is-admin');
+    btn.textContent = 'Ver como admin';
+    document.getElementById('admin-badge').textContent = 'Vendedor';
+    document.getElementById('admin-badge').style.background = '#3a3a8a';
+  }
+  renderGrid();
+}
 
 // TOAST
 function toast(msg) {
