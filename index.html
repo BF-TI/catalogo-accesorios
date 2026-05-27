@@ -389,7 +389,13 @@
     </div>
   </header>
 
-  <div class="layout">
+  <div id="brand-screen">
+    <div class="brand-screen-title">SELECCIONA UNA MARCA<span>.</span></div>
+    <div class="brand-screen-sub">Elegí la marca para ver sus accesorios disponibles</div>
+    <div class="brand-grid" id="brand-grid"></div>
+  </div>
+
+  <div class="layout" id="catalog-layout" style="display:none;">
     <aside>
       <div class="filter-section">
         <div class="filter-label">Marca</div>
@@ -407,6 +413,10 @@
 
     <main>
       <div class="toolbar">
+        <button class="btn-back" onclick="showBrandScreen()" title="Volver a marcas">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Marcas
+        </button>
         <div class="search-wrap">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -430,6 +440,12 @@
       </div>
     </main>
   </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt=""/>
+  <div class="lightbox-title" id="lightbox-title"></div>
 </div>
 
 <div id="toast"></div>
@@ -665,8 +681,7 @@ async function loadData() {
 
     const json = await res.json();
     allData = parseExcel(json.values);
-    buildFilters();
-    renderGrid();
+    showBrandScreen();
     toast(`✓ ${allData.length} accesorios cargados`);
   } catch(e) {
     console.error(e);
@@ -825,7 +840,11 @@ function renderGrid() {
     imgDiv.innerHTML = '<span style="font-size:2.5rem">📦</span>';
     if (item.imagenFile) {
       getImageUrl(item.imagenFile).then(url => {
-        if (url) imgDiv.innerHTML = `<img src="${url}" alt="${item.nombre}" style="width:100%;height:100%;object-fit:cover;display:block;"/>`;
+        if (url) {
+          imgDiv.innerHTML = `<img src="${url}" alt="${item.nombre}" style="width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;" title="Click para ampliar"/>`;
+          imgDiv.style.cursor = 'pointer';
+          imgDiv.onclick = () => openLightbox(url, item.nombre);
+        }
       });
     }
 
@@ -884,6 +903,49 @@ document.getElementById('search')?.addEventListener('input', renderGrid);
 // ══════════════════════════════════════════════
 //  TOAST
 // ══════════════════════════════════════════════
+function showBrandScreen() {
+  document.getElementById('brand-screen').classList.add('show');
+  document.getElementById('catalog-layout').style.display = 'none';
+  
+  const brands = [...new Set(allData.map(d => d.marca).filter(Boolean))].sort();
+  const grid = document.getElementById('brand-grid');
+  grid.innerHTML = '';
+  
+  brands.forEach(brand => {
+    const count = allData.filter(d => d.marca === brand && d.activo).length;
+    const total = allData.filter(d => d.marca === brand).length;
+    const card = document.createElement('div');
+    card.className = 'brand-card';
+    card.innerHTML = `${brand}<div class="brand-card-count">${count} accesorio${count !== 1 ? 's' : ''} disponible${count !== 1 ? 's' : ''}</div>`;
+    card.onclick = () => selectBrand(brand);
+    grid.appendChild(card);
+  });
+}
+
+function selectBrand(brand) {
+  activeFilters = {brand: brand, model: null, category: null};
+  document.getElementById('brand-screen').classList.remove('show');
+  document.getElementById('catalog-layout').style.display = 'flex';
+  document.getElementById('search').value = '';
+  buildFilters();
+  renderGrid();
+}
+
+function openLightbox(imgSrc, title) {
+  const lb = document.getElementById('lightbox');
+  document.getElementById('lightbox-img').src = imgSrc;
+  document.getElementById('lightbox-title').textContent = title || '';
+  lb.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
+
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
