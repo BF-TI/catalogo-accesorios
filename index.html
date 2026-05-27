@@ -408,7 +408,7 @@ function parseExcel(values) {
     return {
       id: String(row[0] || i+1),
       nombre: row[1] || '',
-      marca: row[2] || '',
+      marcas: String(row[2] || '').split(',').map(function(m){return m.trim();}).filter(Boolean),
       modelos: String(row[3] || '').split(',').map(function(m){return m.trim();}).filter(Boolean),
       categoria: row[4] || '',
       sku: row[5] || '',
@@ -466,14 +466,16 @@ function showBrandScreen() {
 
   var brands = [];
   allData.forEach(function(d) {
-    if (d.marca && brands.indexOf(d.marca) < 0) brands.push(d.marca);
+    (d.marcas || []).forEach(function(m) {
+      if (m && brands.indexOf(m) < 0) brands.push(m);
+    });
   });
   brands.sort();
 
   var grid = document.getElementById('brand-grid');
   grid.innerHTML = '';
   brands.forEach(function(brand) {
-    var count = allData.filter(function(d){return d.marca === brand && d.activo;}).length;
+    var count = allData.filter(function(d){return d.marcas.indexOf(brand) >= 0 && d.activo;}).length;
     var card = document.createElement('div');
     card.className = 'brand-card';
     card.innerHTML = brand + '<div class="brand-card-count">' + count + ' accesorio' + (count !== 1 ? 's' : '') + ' disponible' + (count !== 1 ? 's' : '') + '</div>';
@@ -493,7 +495,7 @@ function selectBrand(brand) {
 
 // FILTERS
 function buildFilters() {
-  var baseData = allData.filter(function(d){return d.marca === activeFilters.brand;});
+  var baseData = allData.filter(function(d){return d.marcas.indexOf(activeFilters.brand) >= 0;});
   var models = [];
   baseData.forEach(function(d) {
     (d.modelos || []).forEach(function(m) {
@@ -523,7 +525,7 @@ function renderFilterList(containerId, items, filterKey) {
   c.appendChild(allBtn);
 
   items.forEach(function(item) {
-    var baseData = allData.filter(function(d){return d.marca === activeFilters.brand;});
+    var baseData = allData.filter(function(d){return d.marcas.indexOf(activeFilters.brand) >= 0;});
     var count;
     if (filterKey === 'model') {
       count = baseData.filter(function(d){return d.modelos.indexOf(item) >= 0;}).length;
@@ -550,12 +552,12 @@ function renderGrid() {
   var container = document.getElementById('grid-container');
 
   var filtered = allData.filter(function(item) {
-    if (activeFilters.brand && item.marca !== activeFilters.brand) return false;
+    if (activeFilters.brand && item.marcas.indexOf(activeFilters.brand) < 0) return false;
     if (activeFilters.model && item.modelos.indexOf(activeFilters.model) < 0) return false;
     if (activeFilters.category && item.categoria !== activeFilters.category) return false;
     if (!isAdmin && !item.activo) return false;
     if (q) {
-      var searchStr = (item.nombre + ' ' + item.sku + ' ' + item.marca + ' ' + item.modelos.join(' ')).toLowerCase();
+      var searchStr = (item.nombre + ' ' + item.sku + ' ' + item.marcas.join(' ') + ' ' + item.modelos.join(' ')).toLowerCase();
       if (searchStr.indexOf(q) < 0) return false;
     }
     return true;
@@ -612,7 +614,12 @@ function renderGrid() {
     bodyDiv.className = 'card-body';
     bodyDiv.innerHTML =
       '<div class="card-tags">' +
-        (item.marca ? '<span class="tag tag-brand">' + item.marca + '</span>' : '') +
+        (function(){
+          var mm = item.marcas || [];
+          if (mm.length <= 2) return mm.map(function(m){return '<span class="tag tag-brand">' + m + '</span>';}).join('');
+          if (mm.length <= 4) return '<span class="tag tag-brand" title="' + mm.join(', ') + '">' + mm.length + ' marcas</span>';
+          return '<span class="tag tag-brand" title="' + mm.join(', ') + '">Varias marcas</span>';
+        }()) +
         modeloTags +
       '</div>' +
       '<div class="card-name">' + item.nombre + '</div>' +
