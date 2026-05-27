@@ -555,7 +555,7 @@ function renderGrid() {
 
   var filtered = allData.filter(function(item) {
     if (activeFilters.brand && item.marcas.indexOf(activeFilters.brand) < 0) return false;
-    if (activeFilters.model && item.marcas.length === 1 && item.modelos.indexOf(activeFilters.model) < 0) return false;
+    if (activeFilters.model && item.modelos.indexOf(activeFilters.model) < 0) return false;
     if (activeFilters.category && item.categoria !== activeFilters.category) return false;
     if (!isAdmin && !item.activo) return false;
     if (q) {
