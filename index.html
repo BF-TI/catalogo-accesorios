@@ -498,9 +498,11 @@ function buildFilters() {
   var baseData = allData.filter(function(d){return d.marcas.indexOf(activeFilters.brand) >= 0;});
   var models = [];
   baseData.forEach(function(d) {
-    (d.modelos || []).forEach(function(m) {
-      if (m && models.indexOf(m) < 0) models.push(m);
-    });
+    if (d.marcas.length === 1) {
+      (d.modelos || []).forEach(function(m) {
+        if (m && models.indexOf(m) < 0) models.push(m);
+      });
+    }
   });
   models.sort();
 
@@ -528,7 +530,7 @@ function renderFilterList(containerId, items, filterKey) {
     var baseData = allData.filter(function(d){return d.marcas.indexOf(activeFilters.brand) >= 0;});
     var count;
     if (filterKey === 'model') {
-      count = baseData.filter(function(d){return d.modelos.indexOf(item) >= 0;}).length;
+      count = baseData.filter(function(d){return d.marcas.length === 1 && d.modelos.indexOf(item) >= 0;}).length;
     } else {
       count = baseData.filter(function(d){return d.categoria === item;}).length;
     }
@@ -553,7 +555,7 @@ function renderGrid() {
 
   var filtered = allData.filter(function(item) {
     if (activeFilters.brand && item.marcas.indexOf(activeFilters.brand) < 0) return false;
-    if (activeFilters.model && item.modelos.indexOf(activeFilters.model) < 0) return false;
+    if (activeFilters.model && item.marcas.length === 1 && item.modelos.indexOf(activeFilters.model) < 0) return false;
     if (activeFilters.category && item.categoria !== activeFilters.category) return false;
     if (!isAdmin && !item.activo) return false;
     if (q) {
