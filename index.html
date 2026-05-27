@@ -537,6 +537,9 @@ const CONFIG = {
 
   // 8. Nombre de la hoja dentro del Excel
   sheetName: "Hoja1",
+
+  // 9. ID del archivo Excel (no cambia aunque muevas el archivo)
+  excelFileId: "01IP64SO2AF645V3N5UZHI5SN4MC5ORQCK",
 };
 
 // ══════════════════════════════════════════════
@@ -652,8 +655,8 @@ async function loadData() {
     window._driveId = driveId;
     window._siteId = siteId;
 
-    // Leer Excel
-    const excelUrl = `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${CONFIG.excelPath}:/workbook/worksheets/${CONFIG.sheetName}/usedRange`;
+    // Leer Excel usando ID directo del archivo
+    const excelUrl = `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${CONFIG.excelFileId}/workbook/worksheets/${CONFIG.sheetName}/usedRange`;
     const res = await fetch(excelUrl, {
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -719,7 +722,7 @@ async function toggleActivo(item, newValue) {
     const token = await getToken();
     // La columna I (índice 8) = Activo. Fila = item.rowIndex + 1 (por header)
     const address = `I${item.rowIndex + 1}`; // +1 por el header
-    const url = `https://graph.microsoft.com/v1.0${CONFIG.excelDriveItem}/workbook/worksheets/${CONFIG.sheetName}/range(address='${address}')`;
+    const url = `https://graph.microsoft.com/v1.0/drives/${window._driveId}/items/${CONFIG.excelFileId}/workbook/worksheets/${CONFIG.sheetName}/range(address='${address}')`;
 
     await fetch(url, {
       method: 'PATCH',
