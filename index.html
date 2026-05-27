@@ -1,406 +1,159 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Accesorios Vehículos</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --bg: #0d0d0f;
-      --surface: #16161a;
-      --surface2: #1e1e24;
-      --border: #2a2a35;
-      --accent: #e8342a;
-      --accent2: #ff6b35;
-      --text: #f0f0f2;
-      --muted: #7a7a8c;
-      --success: #22c55e;
-      --warning: #f59e0b;
+      --bg:#0d0d0f;--surface:#16161a;--surface2:#1e1e24;--border:#2a2a35;
+      --accent:#e8342a;--accent2:#ff6b35;--text:#f0f0f2;--muted:#7a7a8c;
+      --success:#22c55e;
     }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
-    /* ── HEADER ── */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 64px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .logo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.6rem;
-      letter-spacing: 2px;
-      color: var(--text);
-    }
-    .logo span { color: var(--accent); }
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 0.85rem;
-    }
-    .user-avatar {
-      width: 34px; height: 34px;
-      border-radius: 50%;
-      background: var(--accent);
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 600; font-size: 0.85rem;
-    }
-    .admin-badge {
-      background: var(--accent);
-      color: white;
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 20px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-    .btn-logout {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 6px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      font-family: 'DM Sans', sans-serif;
-      transition: all 0.2s;
-    }
-    .btn-logout:hover { border-color: var(--accent); color: var(--accent); }
+    /* LOGIN */
+    #login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:2rem;background:radial-gradient(ellipse at 50% 0%,#1a0a08 0%,var(--bg) 70%);}
+    .login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:3rem 3.5rem;text-align:center;max-width:420px;width:90%;}
+    .login-box h1{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:3px;margin-bottom:.5rem;}
+    .login-box h1 span{color:var(--accent);}
+    .login-box p{color:var(--muted);margin-bottom:2rem;font-size:.95rem;}
+    .btn-ms{display:flex;align-items:center;justify-content:center;gap:.75rem;background:#2f2f37;border:1px solid var(--border);color:var(--text);padding:14px 28px;border-radius:10px;cursor:pointer;font-size:.95rem;font-family:'DM Sans',sans-serif;font-weight:500;width:100%;transition:all .2s;}
+    .btn-ms:hover{background:#3a3a45;border-color:#4a4a58;transform:translateY(-1px);}
 
-    /* ── LOGIN SCREEN ── */
-    #login-screen {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      gap: 2rem;
-      background: radial-gradient(ellipse at 50% 0%, #1a0a08 0%, var(--bg) 70%);
-    }
-    .login-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 3rem 3.5rem;
-      text-align: center;
-      max-width: 420px;
-      width: 90%;
-    }
-    .login-box h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2.5rem;
-      letter-spacing: 3px;
-      margin-bottom: 0.5rem;
-    }
-    .login-box h1 span { color: var(--accent); }
-    .login-box p { color: var(--muted); margin-bottom: 2rem; font-size: 0.95rem; }
-    .btn-ms {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      background: #2f2f37;
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 14px 28px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 500;
-      width: 100%;
-      transition: all 0.2s;
-    }
-    .btn-ms:hover { background: #3a3a45; border-color: #4a4a58; transform: translateY(-1px); }
-    .ms-icon { width: 20px; height: 20px; }
+    /* HEADER */
+    header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;}
+    .logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;}
+    .logo span{color:var(--accent);}
+    .user-info{display:flex;align-items:center;gap:.75rem;font-size:.85rem;}
+    .user-avatar{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.85rem;}
+    .admin-badge{background:var(--accent);color:white;font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;}
+    .btn-logout{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.8rem;font-family:'DM Sans',sans-serif;transition:all .2s;}
+    .btn-logout:hover{border-color:var(--accent);color:var(--accent);}
 
-    /* ── MAIN LAYOUT ── */
-    #app { display: none; }
-    .layout { display: flex; min-height: calc(100vh - 64px); }
+    /* BRAND SCREEN */
+    #brand-screen{display:none;min-height:calc(100vh - 64px);background:radial-gradient(ellipse at 50% 30%,#1a0a08 0%,var(--bg) 70%);flex-direction:column;align-items:center;justify-content:center;padding:3rem 2rem;}
+    #brand-screen.show{display:flex;}
+    .brand-screen-title{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:3px;margin-bottom:.5rem;text-align:center;}
+    .brand-screen-title span{color:var(--accent);}
+    .brand-screen-sub{color:var(--muted);font-size:.95rem;margin-bottom:2.5rem;text-align:center;}
+    .brand-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;width:100%;max-width:800px;}
+    .brand-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem 1rem;text-align:center;cursor:pointer;transition:all .2s;font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;color:var(--text);}
+    .brand-card:hover{transform:translateY(-4px);border-color:var(--accent);background:#1a0800;box-shadow:0 8px 24px rgba(232,52,42,.15);}
+    .brand-card-count{font-family:'DM Sans',sans-serif;font-size:.75rem;color:var(--muted);letter-spacing:0;margin-top:.4rem;}
 
-    /* ── SIDEBAR ── */
-    aside {
-      width: 280px;
-      min-width: 280px;
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      padding: 1.5rem 1rem;
-      overflow-y: auto;
-    }
-    .filter-section { margin-bottom: 1.5rem; }
-    .filter-label {
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 0.75rem;
-      padding: 0 0.5rem;
-    }
-    .filter-btn {
-      display: block;
-      width: 100%;
-      text-align: left;
-      background: none;
-      border: none;
-      color: var(--text);
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-family: 'DM Sans', sans-serif;
-      transition: all 0.15s;
-      margin-bottom: 2px;
-    }
-    .filter-btn:hover { background: var(--surface2); }
-    .filter-btn.active { background: var(--accent); color: white; font-weight: 500; }
-    .filter-count {
-      float: right;
-      font-size: 0.75rem;
-      background: var(--surface2);
-      padding: 1px 7px;
-      border-radius: 10px;
-      color: var(--muted);
-    }
-    .filter-btn.active .filter-count { background: rgba(255,255,255,0.2); color: white; }
+    /* CATALOG LAYOUT */
+    .layout{display:flex;min-height:calc(100vh - 64px);}
+    aside{width:260px;min-width:260px;background:var(--surface);border-right:1px solid var(--border);padding:1.5rem 1rem;overflow-y:auto;}
+    .filter-section{margin-bottom:1.5rem;}
+    .filter-label{font-size:.7rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;padding:0 .5rem;}
+    .filter-btn{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text);padding:8px 12px;border-radius:8px;cursor:pointer;font-size:.9rem;font-family:'DM Sans',sans-serif;transition:all .15s;margin-bottom:2px;}
+    .filter-btn:hover{background:var(--surface2);}
+    .filter-btn.active{background:var(--accent);color:white;font-weight:500;}
+    .filter-count{float:right;font-size:.75rem;background:var(--surface2);padding:1px 7px;border-radius:10px;color:var(--muted);}
+    .filter-btn.active .filter-count{background:rgba(255,255,255,.2);color:white;}
 
-    /* ── CONTENT ── */
-    main { flex: 1; padding: 2rem; overflow-y: auto; }
-    .toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1.5rem;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-    .search-wrap {
-      position: relative;
-      flex: 1;
-      max-width: 380px;
-    }
-    .search-wrap svg {
-      position: absolute;
-      left: 12px; top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-    }
-    #search {
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 10px 12px 10px 40px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-family: 'DM Sans', sans-serif;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    #search:focus { border-color: var(--accent); }
-    #search::placeholder { color: var(--muted); }
-    .results-count { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+    main{flex:1;padding:2rem;overflow-y:auto;}
+    .toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;gap:1rem;flex-wrap:wrap;}
+    .btn-back{display:flex;align-items:center;gap:.4rem;background:none;border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:.82rem;font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap;}
+    .btn-back:hover{border-color:var(--accent);color:var(--accent);}
+    .search-wrap{position:relative;flex:1;max-width:380px;}
+    .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);}
+    #search{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px 12px 10px 40px;border-radius:8px;font-size:.9rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
+    #search:focus{border-color:var(--accent);}
+    #search::placeholder{color:var(--muted);}
+    .results-count{color:var(--muted);font-size:.85rem;white-space:nowrap;}
 
-    /* ── GRID ── */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 1.25rem;
-    }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      transition: transform 0.2s, border-color 0.2s;
-      position: relative;
-    }
-    .card:hover { transform: translateY(-3px); border-color: #3a3a48; }
-    .card.inactive { opacity: 0.45; }
-    .card-img {
-      width: 100%;
-      aspect-ratio: 4/3;
-      object-fit: cover;
-      background: var(--surface2);
-      display: flex; align-items: center; justify-content: center;
-    }
-    .card-img img { width:100%; height:100%; object-fit:cover; display:block; }
-    .card-img-placeholder {
-      width:100%; aspect-ratio:4/3;
-      background: var(--surface2);
-      display:flex; align-items:center; justify-content:center;
-      color: var(--muted); font-size:2.5rem;
-    }
-    .card-body { padding: 1rem; }
-    .card-tags {
-      display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.6rem;
-    }
-    .tag {
-      font-size: 0.68rem; font-weight: 600;
-      letter-spacing: 0.5px; text-transform: uppercase;
-      padding: 2px 8px; border-radius: 4px;
-    }
-    .tag-brand { background: #1e1e2e; color: #a0a0c0; border: 1px solid #2a2a40; }
-    .tag-model { background: #1a1a12; color: #b0a060; border: 1px solid #2a2a18; }
-    .card-name { font-size: 0.95rem; font-weight: 500; margin-bottom: 0.3rem; }
-    .card-sku { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.75rem; }
-    .card-price { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 1px; color: var(--accent2); }
-    .card-footer {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-top: 0.75rem; padding-top: 0.75rem;
-      border-top: 1px solid var(--border);
-    }
-    .status-dot {
-      display: flex; align-items: center; gap: 0.4rem;
-      font-size: 0.78rem; color: var(--muted);
-    }
-    .dot { width:7px; height:7px; border-radius:50%; }
-    .dot.on { background: var(--success); box-shadow: 0 0 6px var(--success); }
-    .dot.off { background: var(--muted); }
+    /* CARDS */
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .2s,border-color .2s;position:relative;}
+    .card:hover{transform:translateY(-3px);border-color:#3a3a48;}
+    .card.inactive{opacity:.4;}
+    .card-img{width:100%;aspect-ratio:4/3;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:2.5rem;cursor:pointer;}
+    .card-img img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;}
+    .card-body{padding:1rem;}
+    .card-tags{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem;}
+    .tag{font-size:.68rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:2px 8px;border-radius:4px;}
+    .tag-brand{background:#1e1e2e;color:#a0a0c0;border:1px solid #2a2a40;}
+    .tag-model{background:#1a1a12;color:#b0a060;border:1px solid #2a2a18;}
+    .card-name{font-size:.95rem;font-weight:500;margin-bottom:.3rem;}
+    .card-sku{font-size:.75rem;color:var(--muted);margin-bottom:.75rem;}
+    .card-price{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:1px;color:var(--accent2);}
+    .card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border);}
+    .status-dot{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--muted);}
+    .dot{width:7px;height:7px;border-radius:50%;}
+    .dot.on{background:var(--success);box-shadow:0 0 6px var(--success);}
+    .dot.off{background:var(--muted);}
+    .inactive-banner{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.85);color:#666;font-size:.7rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:4px;border:1px solid var(--border);}
+    body:not(.is-admin) .card.inactive{display:none;}
 
-    /* ── TOGGLE ADMIN ── */
-    .toggle {
-      position: relative; width: 42px; height: 22px;
-      display: none;
-    }
-    .toggle input { opacity:0; width:0; height:0; }
-    .slider {
-      position: absolute; inset:0;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 22px; cursor: pointer;
-      transition: background 0.2s;
-    }
-    .slider:before {
-      content:''; position:absolute;
-      width:16px; height:16px;
-      left:2px; top:2px;
-      background: var(--muted);
-      border-radius: 50%;
-      transition: transform 0.2s, background 0.2s;
-    }
-    .toggle input:checked + .slider { background: #0a2010; border-color: var(--success); }
-    .toggle input:checked + .slider:before { transform: translateX(20px); background: var(--success); }
-    body.is-admin .toggle { display:block; }
+    /* TOGGLE */
+    .toggle{position:relative;width:42px;height:22px;display:none;}
+    .toggle input{opacity:0;width:0;height:0;}
+    .slider{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--border);border-radius:22px;cursor:pointer;transition:background .2s;}
+    .slider:before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:var(--muted);border-radius:50%;transition:transform .2s,background .2s;}
+    .toggle input:checked + .slider{background:#0a2010;border-color:var(--success);}
+    .toggle input:checked + .slider:before{transform:translateX(20px);background:var(--success);}
+    body.is-admin .toggle{display:block;}
 
-    /* ── INACTIVE BANNER ── */
-    .inactive-banner {
-      position: absolute; top: 10px; right: 10px;
-      background: rgba(0,0,0,0.8);
-      color: var(--muted);
-      font-size: 0.7rem; font-weight: 600;
-      letter-spacing: 1px; text-transform: uppercase;
-      padding: 4px 10px; border-radius: 4px;
-      border: 1px solid var(--border);
-    }
-    body:not(.is-admin) .card.inactive { display: none; }
+    /* LIGHTBOX */
+    .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .3s;}
+    .lightbox.show{opacity:1;pointer-events:all;}
+    .lightbox img{max-width:90%;max-height:85vh;border-radius:8px;object-fit:contain;}
+    .lightbox-close{position:absolute;top:20px;right:24px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem;transition:all .2s;}
+    .lightbox-close:hover{background:rgba(255,255,255,.25);}
+    .lightbox-title{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.7);font-size:.9rem;text-align:center;}
 
-    /* ── LOADING / EMPTY ── */
-    .loading, .empty {
-      text-align: center; padding: 4rem 2rem;
-      color: var(--muted);
-    }
-    .loading-spinner {
-      width: 36px; height: 36px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 1rem;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* LOADING / EMPTY */
+    .loading,.empty{text-align:center;padding:4rem 2rem;color:var(--muted);}
+    .loading-spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem;}
+    @keyframes spin{to{transform:rotate(360deg);}}
 
-    /* ── TOAST ── */
-    #toast {
-      position: fixed; bottom: 2rem; right: 2rem;
-      background: var(--surface2); border: 1px solid var(--border);
-      padding: 12px 20px; border-radius: 8px;
-      font-size: 0.85rem; opacity: 0;
-      transition: opacity 0.3s; pointer-events: none; z-index: 999;
-    }
-    #toast.show { opacity: 1; }
+    /* TOAST */
+    #toast{position:fixed;bottom:2rem;right:2rem;background:var(--surface2);border:1px solid var(--border);padding:12px 20px;border-radius:8px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+    #toast.show{opacity:1;}
 
-    /* ── SYNC BUTTON ── */
-    .btn-sync {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.82rem;
-      font-family: 'DM Sans', sans-serif;
-      display: flex; align-items: center; gap: 0.5rem;
-      transition: all 0.2s;
-    }
-    .btn-sync:hover { border-color: var(--accent); color: var(--accent); }
-
-    @media (max-width: 768px) {
-      aside { display: none; }
-      main { padding: 1rem; }
-      .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-    }
+    @media(max-width:768px){aside{display:none;}main{padding:1rem;}.grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}}
   </style>
 </head>
 <body>
 
-<!-- ══ LOGIN ══ -->
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
     <h1>ACCESORIOS<span>.</span></h1>
     <p>Catálogo de accesorios para vehículos nuevos</p>
     <button class="btn-ms" onclick="signIn()">
-      <svg class="ms-icon" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-        <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
-        <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
-        <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-      </svg>
+      <svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
       Ingresar con Microsoft
     </button>
   </div>
 </div>
 
-<!-- ══ APP ══ -->
-<div id="app">
+<!-- APP -->
+<div id="app" style="display:none">
   <header>
     <div class="logo">ACCESORIOS<span>.</span></div>
     <div class="user-info">
       <div class="user-avatar" id="user-avatar">?</div>
-      <span id="user-name">—</span>
+      <span id="user-name"></span>
       <span class="admin-badge" id="admin-badge" style="display:none">Admin</span>
       <button class="btn-logout" onclick="signOut()">Salir</button>
     </div>
   </header>
 
+  <!-- BRAND SELECTOR -->
   <div id="brand-screen">
     <div class="brand-screen-title">SELECCIONA UNA MARCA<span>.</span></div>
     <div class="brand-screen-sub">Elegí la marca para ver sus accesorios disponibles</div>
     <div class="brand-grid" id="brand-grid"></div>
   </div>
 
+  <!-- CATALOG -->
   <div class="layout" id="catalog-layout" style="display:none;">
     <aside>
-      <div class="filter-section">
-        <div class="filter-label">Marca</div>
-        <div id="brand-filters"></div>
-      </div>
       <div class="filter-section">
         <div class="filter-label">Modelo</div>
         <div id="model-filters"></div>
@@ -410,47 +163,35 @@
         <div id="category-filters"></div>
       </div>
     </aside>
-
     <main>
       <div class="toolbar">
-        <button class="btn-back" onclick="showBrandScreen()" title="Volver a marcas">
+        <button class="btn-back" onclick="showBrandScreen()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           Marcas
         </button>
         <div class="search-wrap">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input id="search" type="text" placeholder="Buscar accesorio..."/>
         </div>
-        <span class="results-count" id="results-count">— productos</span>
-        <button class="btn-sync" onclick="loadData()" title="Sincronizar con SharePoint">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-          </svg>
-          Sincronizar
-        </button>
+        <span class="results-count" id="results-count"></span>
       </div>
-
       <div id="grid-container">
-        <div class="loading">
-          <div class="loading-spinner"></div>
-          <p>Cargando catálogo...</p>
-        </div>
+        <div class="loading"><div class="loading-spinner"></div><p>Cargando...</p></div>
       </div>
     </main>
   </div>
 </div>
 
+<!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-  <img id="lightbox-img" src="" alt=""/>
+  <button class="lightbox-close" onclick="event.stopPropagation();closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()"/>
   <div class="lightbox-title" id="lightbox-title"></div>
 </div>
 
 <div id="toast"></div>
 
-<!-- MSAL -->
+<!-- MSAL LIBRARY -->
 <script>/*! @azure/msal-browser v2.32.0 2022-11-22 */
 "use strict";!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t((e="undefined"!=typeof globalThis?globalThis:e||self).msal={})}(this,(function(e){
 /*! *****************************************************************************
@@ -526,46 +267,24 @@ var it,at,st,ct,ut,lt,dt,ht,pt=function(){function e(e){this.networkInterface=e}
 </script>
 
 <script>
-// ══════════════════════════════════════════════
-//  CONFIGURACIÓN — editar según tu tenant
-// ══════════════════════════════════════════════
+// CONFIG
 const CONFIG = {
-  // 1. Registrá una app en portal.azure.com → Azure Active Directory → App registrations
   clientId: "20e10f55-888a-45b9-a78e-74acbe97f83d",
-
-  // 2. Tu tenant ID (lo ves en Azure AD → Overview)
   tenantId: "bc44fd2e-3525-494d-99c4-234205cd0468",
-
-  // 3. Email del administrador (solo este usuario ve los toggles)
   adminEmail: "svillablanca@brunofritsch.cl",
-
-  // 4. Ruta del Excel en SharePoint
-  excelPath: "CATALOGO_ACC/PAGINA WEB/catalogo.xlsx",
-
-  // 5. Ruta de la carpeta de imágenes en SharePoint
-  imageFolder: "CATALOGO_ACC/PAGINA WEB/Fotos accesorios",
-
-  // 6. Nombre del sitio SharePoint
-  sitePath: "/sites/CATALOGO_ACC",
-
-  // 7. Nombre de la biblioteca de documentos
+  siteId: "brunofritsch.sharepoint.com,8dcbd9be-ce13-459b-838a-582cc47b6557,b950ec79-7589-489b-95dd-1122d3def25e",
   driveRoot: "Documentos compartidos",
-
-  // 8. Nombre de la hoja dentro del Excel
-  sheetName: "Sheet1",
-
-  // 9. ID del archivo Excel (no cambia aunque muevas el archivo)
   excelFileId: "01IP64SO2AF645V3N5UZHI5SN4MC5ORQCK",
+  imageFolder: "CATALOGO_ACC/PAGINA WEB/Fotos accesorios",
+  sheetName: "Sheet1",
 };
 
-// ══════════════════════════════════════════════
-//  MSAL SETUP
-// ══════════════════════════════════════════════
+// MSAL
 const msalConfig = {
   auth: {
     clientId: CONFIG.clientId,
-    authority: `https://login.microsoftonline.com/${CONFIG.tenantId}`,
-    redirectUri: window.location.href.split('?')[0],
+    authority: "https://login.microsoftonline.com/" + CONFIG.tenantId,
+    redirectUri: window.location.href.split('?')[0].split('#')[0],
   },
   cache: { cacheLocation: "sessionStorage" }
 };
@@ -585,15 +304,14 @@ let currentUser = null;
 let isAdmin = false;
 let allData = [];
 let activeFilters = { brand: null, model: null, category: null };
+let driveId = null;
 
-// ══════════════════════════════════════════════
-//  AUTH
-// ══════════════════════════════════════════════
+// AUTH
 async function signIn() {
   try {
-    const msal_ = await getMsal();
-    const result = await msal_.loginPopup({ scopes });
-    msal_.setActiveAccount(result.account);
+    const m = await getMsal();
+    const result = await m.loginPopup({ scopes });
+    m.setActiveAccount(result.account);
     await initApp(result.account);
   } catch(e) {
     console.error(e);
@@ -602,17 +320,17 @@ async function signIn() {
 }
 
 async function signOut() {
-  const msal_ = await getMsal();
-  msal_.logoutPopup();
+  const m = await getMsal();
+  m.logoutPopup();
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.body.classList.remove('is-admin');
 }
 
 async function getToken() {
-  const msal_ = await getMsal();
-  const account = msal_.getActiveAccount();
-  const result = await msal_.acquireTokenSilent({ scopes, account });
+  const m = await getMsal();
+  const account = m.getActiveAccount();
+  const result = await m.acquireTokenSilent({ scopes, account });
   return result.accessToken;
 }
 
@@ -635,19 +353,17 @@ async function initApp(account) {
   await loadData();
 }
 
-// Chequear si ya hay sesión activa al cargar
+// Check existing session
 window.addEventListener('load', async () => {
-  const msal_ = await getMsal();
-  const accounts = msal_.getAllAccounts();
+  const m = await getMsal();
+  const accounts = m.getAllAccounts();
   if (accounts.length > 0) {
-    msal_.setActiveAccount(accounts[0]);
+    m.setActiveAccount(accounts[0]);
     await initApp(accounts[0]);
   }
 });
 
-// ══════════════════════════════════════════════
-//  GRAPH API — LEER EXCEL
-// ══════════════════════════════════════════════
+// LOAD DATA
 async function loadData() {
   const container = document.getElementById('grid-container');
   container.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>Cargando desde SharePoint...</p></div>';
@@ -655,275 +371,113 @@ async function loadData() {
   try {
     const token = await getToken();
 
-    // Site ID hardcodeado (obtenido via Graph API)
-    const siteId = "brunofritsch.sharepoint.com,8dcbd9be-ce13-459b-838a-582cc47b6557,b950ec79-7589-489b-95dd-1122d3def25e";
-
-    // Obtener la biblioteca de documentos
-    const drivesRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`, {
-      headers: { Authorization: `Bearer ${token}` }
+    // Get drive
+    const drivesRes = await fetch("https://graph.microsoft.com/v1.0/sites/" + CONFIG.siteId + "/drives", {
+      headers: { Authorization: "Bearer " + token }
     });
-    if (!drivesRes.ok) throw new Error(`Drives: ${drivesRes.status} ${drivesRes.statusText}`);
+    if (!drivesRes.ok) throw new Error("Drives: " + drivesRes.status);
     const drivesData = await drivesRes.json();
     const drive = drivesData.value.find(d => d.name === CONFIG.driveRoot) || drivesData.value[0];
-    const driveId = drive.id;
+    driveId = drive.id;
 
-    // Guardar para imágenes
-    window._driveId = driveId;
-    window._siteId = siteId;
-
-    // Leer Excel usando ID directo del archivo
-    const excelUrl = `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${CONFIG.excelFileId}/workbook/worksheets/${CONFIG.sheetName}/usedRange`;
-    const res = await fetch(excelUrl, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (!res.ok) throw new Error(`Excel: ${res.status} ${res.statusText}`);
+    // Read Excel
+    const excelUrl = "https://graph.microsoft.com/v1.0/drives/" + driveId + "/items/" + CONFIG.excelFileId + "/workbook/worksheets/" + CONFIG.sheetName + "/usedRange";
+    const res = await fetch(excelUrl, { headers: { Authorization: "Bearer " + token } });
+    if (!res.ok) throw new Error("Excel: " + res.status);
 
     const json = await res.json();
     allData = parseExcel(json.values);
     showBrandScreen();
-    toast(`✓ ${allData.length} accesorios cargados`);
+    toast("\u2713 " + allData.length + " accesorios cargados");
   } catch(e) {
     console.error(e);
-    container.innerHTML = `
-      <div class="empty">
-        <p style="font-size:2rem;margin-bottom:1rem;">⚠️</p>
-        <p>No se pudo conectar con SharePoint.</p>
-        <p style="font-size:0.8rem;margin-top:0.5rem;color:#555">${e.message}</p>
-        <p style="font-size:0.8rem;margin-top:0.5rem">Verificá la configuración en config.js</p>
-      </div>`;
+    container.innerHTML = '<div class="empty"><p style="font-size:2rem;margin-bottom:1rem">\u26A0\uFE0F</p><p>No se pudo conectar con SharePoint.</p><p style="font-size:.8rem;margin-top:.5rem;color:#555">' + e.message + '</p></div>';
   }
 }
 
-// ══════════════════════════════════════════════
-//  PARSEAR EXCEL
-//  Columnas esperadas: A=ID B=Nombre C=Marca D=Modelo E=Categoria F=SKU G=Precio H=ImagenURL I=Activo
-// ══════════════════════════════════════════════
+// PARSE EXCEL: ID | Nombre | Marca | Modelos | Categoria | SKU | Precio | ImagenFile | Activo
 function parseExcel(values) {
   if (!values || values.length < 2) return [];
-  return values.slice(1).map((row, i) => ({
-    id:         String(row[0] || i+1),
-    nombre:     row[1] || '',
-    marca:      row[2] || '',
-    modelos:    String(row[3] || '').split(',').map(m => m.trim()).filter(Boolean),
-    categoria:  row[4] || '',
-    sku:        row[5] || '',
-    precio:     row[6] || '',
-    imagenFile: row[7] || '',   // solo el nombre del archivo
-    activo:     String(row[8]).toLowerCase() === 'si' || row[8] === true || row[8] === 1,
-    rowIndex:   i + 2,          // +2 por header y base-1
-  })).filter(r => r.nombre);
+  return values.slice(1).map(function(row, i) {
+    return {
+      id: String(row[0] || i+1),
+      nombre: row[1] || '',
+      marca: row[2] || '',
+      modelos: String(row[3] || '').split(',').map(function(m){return m.trim();}).filter(Boolean),
+      categoria: row[4] || '',
+      sku: row[5] || '',
+      precio: row[6] || '',
+      imagenFile: row[7] || '',
+      activo: String(row[8]).toLowerCase() === 'si' || row[8] === true || row[8] === 1,
+      rowIndex: i + 2,
+    };
+  }).filter(function(r){return r.nombre;});
 }
 
-// Carga imagen autenticada desde SharePoint
+// IMAGE LOADING
+var imageCache = {};
 async function getImageUrl(filename) {
-  if (!filename) return null;
+  if (!filename || !driveId) return null;
+  if (imageCache[filename]) return imageCache[filename];
   try {
-    const token = await getToken();
-    const path = encodeURIComponent(CONFIG.imageFolder + '/' + filename);
-    const url = `https://graph.microsoft.com/v1.0/drives/${window._driveId}/root:/${CONFIG.imageFolder}/${filename}:/content`;
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    var token = await getToken();
+    var url = "https://graph.microsoft.com/v1.0/drives/" + driveId + "/root:/" + CONFIG.imageFolder + "/" + filename + ":/content";
+    var res = await fetch(url, { headers: { Authorization: "Bearer " + token } });
     if (!res.ok) return null;
-    const blob = await res.blob();
-    return URL.createObjectURL(blob);
-  } catch { return null; }
+    var blob = await res.blob();
+    var objUrl = URL.createObjectURL(blob);
+    imageCache[filename] = objUrl;
+    return objUrl;
+  } catch(e) { return null; }
 }
 
-// ══════════════════════════════════════════════
-//  ACTUALIZAR CELDA EN EXCEL (toggle activo/inactivo)
-// ══════════════════════════════════════════════
-async function toggleActivo(item, newValue) {
+// TOGGLE ACTIVO
+async function toggleActivo(id, newValue) {
+  var item = allData.find(function(d){return d.id === id;});
+  if (!item) return;
   try {
-    const token = await getToken();
-    // La columna I (índice 8) = Activo. Fila = item.rowIndex + 1 (por header)
-    const address = `I${item.rowIndex}`; // rowIndex ya incluye header
-    const url = `https://graph.microsoft.com/v1.0/drives/${window._driveId}/items/${CONFIG.excelFileId}/workbook/worksheets/${CONFIG.sheetName}/range(address='${address}')`;
-
+    var token = await getToken();
+    var address = "I" + item.rowIndex;
+    var url = "https://graph.microsoft.com/v1.0/drives/" + driveId + "/items/" + CONFIG.excelFileId + "/workbook/worksheets/" + CONFIG.sheetName + "/range(address='" + address + "')";
     await fetch(url, {
       method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: "Bearer " + token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ values: [[newValue ? 'Si' : 'No']] })
     });
-
     item.activo = newValue;
-    toast(newValue ? '✓ Accesorio activado' : '○ Accesorio desactivado');
+    toast(newValue ? '\u2713 Activado: ' + item.nombre : '\u25CB Desactivado: ' + item.nombre);
   } catch(e) {
     console.error(e);
     toast('Error al guardar: ' + e.message);
   }
 }
 
-// ══════════════════════════════════════════════
-//  FILTROS
-// ══════════════════════════════════════════════
-function buildFilters() {
-  const brands    = [...new Set(allData.map(d => d.marca).filter(Boolean))].sort();
-  const models    = [...new Set(allData.flatMap(d => d.modelos || []).filter(Boolean))].sort();
-  const categories = [...new Set(allData.map(d => d.categoria).filter(Boolean))].sort();
-
-  renderFilterList('brand-filters', brands, 'brand', 'marca');
-  renderFilterList('model-filters', models, 'model', 'modelos');
-  renderFilterList('category-filters', categories, 'category', 'categoria');
-}
-
-function renderFilterList(containerId, items, filterKey, dataKey) {
-  const container = document.getElementById(containerId);
-  container.innerHTML = '';
-
-  const allBtn = document.createElement('button');
-  allBtn.className = 'filter-btn' + (activeFilters[filterKey] === null ? ' active' : '');
-  allBtn.textContent = 'Todos';
-  allBtn.onclick = () => setFilter(filterKey, null);
-  container.appendChild(allBtn);
-
-  items.forEach(item => {
-    const count = allData.filter(d => 
-      Array.isArray(d[dataKey]) ? d[dataKey].includes(item) : d[dataKey] === item
-    ).length;
-    const btn = document.createElement('button');
-    btn.className = 'filter-btn' + (activeFilters[filterKey] === item ? ' active' : '');
-    btn.innerHTML = `${item} <span class="filter-count">${count}</span>`;
-    btn.onclick = () => setFilter(filterKey, item);
-    container.appendChild(btn);
-  });
-}
-
-function setFilter(key, value) {
-  activeFilters[key] = value;
-  if (key === 'brand') {
-    activeFilters.model = null;
-    const modelsForBrand = value
-      ? [...new Set(allData.filter(d => d.marca === value).flatMap(d => d.modelos || []).filter(Boolean))].sort()
-      : [...new Set(allData.flatMap(d => d.modelos || []).filter(Boolean))].sort();
-    renderFilterList('model-filters', modelsForBrand, 'model', 'modelos');
-  }
-  buildFilters();
-  renderGrid();
-}
-
-// ══════════════════════════════════════════════
-//  RENDER GRID
-// ══════════════════════════════════════════════
-function renderGrid() {
-  const q = document.getElementById('search').value.toLowerCase();
-  const container = document.getElementById('grid-container');
-
-  let filtered = allData.filter(item => {
-    if (activeFilters.brand    && item.marca !== activeFilters.brand) return false;
-    if (activeFilters.model    && !(item.modelos || []).includes(activeFilters.model)) return false;
-    if (activeFilters.category && item.categoria !== activeFilters.category) return false;
-    if (q && !`${item.nombre} ${item.sku} ${item.marca} ${(item.modelos||[]).join(' ')}`.toLowerCase().includes(q)) return false;
-    return true;
-  });
-
-  document.getElementById('results-count').textContent = `${filtered.length} accesorio${filtered.length !== 1 ? 's' : ''}`;
-
-  if (filtered.length === 0) {
-    container.innerHTML = '<div class="empty"><p style="font-size:2rem;margin-bottom:0.5rem">🔍</p><p>Sin resultados</p></div>';
-    return;
-  }
-
-  container.innerHTML = '';
-  const grid = document.createElement('div');
-  grid.className = 'grid';
-
-  filtered.forEach(item => {
-    const card = document.createElement('div');
-    card.className = 'card' + (item.activo ? '' : ' inactive');
-
-    // Placeholder mientras carga la imagen
-    const imgDiv = document.createElement('div');
-    imgDiv.className = 'card-img';
-    imgDiv.innerHTML = '<span style="font-size:2.5rem">📦</span>';
-    if (item.imagenFile) {
-      getImageUrl(item.imagenFile).then(url => {
-        if (url) {
-          imgDiv.innerHTML = `<img src="${url}" alt="${item.nombre}" style="width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;" title="Click para ampliar"/>`;
-          imgDiv.style.cursor = 'pointer';
-          imgDiv.onclick = () => openLightbox(url, item.nombre);
-        }
-      });
-    }
-
-    // Etiquetas de modelos: máx 2 visibles, resto → "N modelos"
-    const modelos = item.modelos || [];
-    let modeloTags = '';
-    if (modelos.length === 0) {
-      modeloTags = '';
-    } else if (modelos.length <= 2) {
-      modeloTags = modelos.map(m => `<span class="tag tag-model">${m}</span>`).join('');
-    } else if (modelos.length <= 4) {
-      modeloTags = `<span class="tag tag-model" title="${modelos.join(', ')}">${modelos[0]}, +${modelos.length-1} más</span>`;
-    } else {
-      modeloTags = `<span class="tag tag-model" title="${modelos.join(', ')}">Varios modelos</span>`;
-    }
-
-    const precio = item.precio
-      ? `<div class="card-price">$${Number(item.precio).toLocaleString('es-CL')}</div>`
-      : '';
-
-    card.innerHTML = `
-      ${!item.activo ? '<span class="inactive-banner">No disponible</span>' : ''}
-      <div class="card-body">
-        <div class="card-tags">
-          ${item.marca ? `<span class="tag tag-brand">${item.marca}</span>` : ''}
-          ${modeloTags}
-        </div>
-        <div class="card-name">${item.nombre}</div>
-        ${item.sku ? `<div class="card-sku">SKU: ${item.sku}</div>` : ''}
-        ${precio}
-        <div class="card-footer">
-          <div class="status-dot">
-            <span class="dot ${item.activo ? 'on' : 'off'}"></span>
-            ${item.activo ? 'Disponible' : 'No disponible'}
-          </div>
-          <label class="toggle" title="${item.activo ? 'Desactivar' : 'Activar'}">
-            <input type="checkbox" ${item.activo ? 'checked' : ''} 
-              onchange="toggleActivo(allData.find(d=>d.id==='${item.id}'), this.checked); 
-                        this.closest('.card').classList.toggle('inactive', !this.checked);
-                        this.closest('.card').querySelector('.dot').className='dot '+(this.checked?'on':'off');
-                        this.closest('.card').querySelector('.status-dot').lastChild.textContent=' '+(this.checked?'Disponible':'No disponible');"/>
-            <span class="slider"></span>
-          </label>
-        </div>
-      </div>`;
-
-    card.insertBefore(imgDiv, card.firstChild);
-    grid.appendChild(card);
-  });
-
-  container.appendChild(grid);
-}
-
-document.getElementById('search')?.addEventListener('input', renderGrid);
-
-// ══════════════════════════════════════════════
-//  TOAST
-// ══════════════════════════════════════════════
+// BRAND SCREEN
 function showBrandScreen() {
   document.getElementById('brand-screen').classList.add('show');
   document.getElementById('catalog-layout').style.display = 'none';
-  
-  const brands = [...new Set(allData.map(d => d.marca).filter(Boolean))].sort();
-  const grid = document.getElementById('brand-grid');
+  activeFilters = { brand: null, model: null, category: null };
+
+  var brands = [];
+  allData.forEach(function(d) {
+    if (d.marca && brands.indexOf(d.marca) < 0) brands.push(d.marca);
+  });
+  brands.sort();
+
+  var grid = document.getElementById('brand-grid');
   grid.innerHTML = '';
-  
-  brands.forEach(brand => {
-    const count = allData.filter(d => d.marca === brand && d.activo).length;
-    const total = allData.filter(d => d.marca === brand).length;
-    const card = document.createElement('div');
+  brands.forEach(function(brand) {
+    var count = allData.filter(function(d){return d.marca === brand && d.activo;}).length;
+    var card = document.createElement('div');
     card.className = 'brand-card';
-    card.innerHTML = `${brand}<div class="brand-card-count">${count} accesorio${count !== 1 ? 's' : ''} disponible${count !== 1 ? 's' : ''}</div>`;
-    card.onclick = () => selectBrand(brand);
+    card.innerHTML = brand + '<div class="brand-card-count">' + count + ' accesorio' + (count !== 1 ? 's' : '') + ' disponible' + (count !== 1 ? 's' : '') + '</div>';
+    card.onclick = function() { selectBrand(brand); };
     grid.appendChild(card);
   });
 }
 
 function selectBrand(brand) {
-  activeFilters = {brand: brand, model: null, category: null};
+  activeFilters = { brand: brand, model: null, category: null };
   document.getElementById('brand-screen').classList.remove('show');
   document.getElementById('catalog-layout').style.display = 'flex';
   document.getElementById('search').value = '';
@@ -931,11 +485,181 @@ function selectBrand(brand) {
   renderGrid();
 }
 
+// FILTERS
+function buildFilters() {
+  var baseData = allData.filter(function(d){return d.marca === activeFilters.brand;});
+  var models = [];
+  baseData.forEach(function(d) {
+    (d.modelos || []).forEach(function(m) {
+      if (m && models.indexOf(m) < 0) models.push(m);
+    });
+  });
+  models.sort();
+
+  var cats = [];
+  baseData.forEach(function(d) {
+    if (d.categoria && cats.indexOf(d.categoria) < 0) cats.push(d.categoria);
+  });
+  cats.sort();
+
+  renderFilterList('model-filters', models, 'model');
+  renderFilterList('category-filters', cats, 'category');
+}
+
+function renderFilterList(containerId, items, filterKey) {
+  var c = document.getElementById(containerId);
+  c.innerHTML = '';
+
+  var allBtn = document.createElement('button');
+  allBtn.className = 'filter-btn' + (activeFilters[filterKey] === null ? ' active' : '');
+  allBtn.textContent = 'Todos';
+  allBtn.onclick = function() { setFilter(filterKey, null); };
+  c.appendChild(allBtn);
+
+  items.forEach(function(item) {
+    var baseData = allData.filter(function(d){return d.marca === activeFilters.brand;});
+    var count;
+    if (filterKey === 'model') {
+      count = baseData.filter(function(d){return d.modelos.indexOf(item) >= 0;}).length;
+    } else {
+      count = baseData.filter(function(d){return d.categoria === item;}).length;
+    }
+    var btn = document.createElement('button');
+    btn.className = 'filter-btn' + (activeFilters[filterKey] === item ? ' active' : '');
+    btn.innerHTML = item + ' <span class="filter-count">' + count + '</span>';
+    btn.onclick = function() { setFilter(filterKey, item); };
+    c.appendChild(btn);
+  });
+}
+
+function setFilter(key, value) {
+  activeFilters[key] = value;
+  buildFilters();
+  renderGrid();
+}
+
+// RENDER GRID
+function renderGrid() {
+  var q = document.getElementById('search').value.toLowerCase();
+  var container = document.getElementById('grid-container');
+
+  var filtered = allData.filter(function(item) {
+    if (activeFilters.brand && item.marca !== activeFilters.brand) return false;
+    if (activeFilters.model && item.modelos.indexOf(activeFilters.model) < 0) return false;
+    if (activeFilters.category && item.categoria !== activeFilters.category) return false;
+    if (!isAdmin && !item.activo) return false;
+    if (q) {
+      var searchStr = (item.nombre + ' ' + item.sku + ' ' + item.marca + ' ' + item.modelos.join(' ')).toLowerCase();
+      if (searchStr.indexOf(q) < 0) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('results-count').textContent = filtered.length + ' accesorio' + (filtered.length !== 1 ? 's' : '');
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty"><p style="font-size:2rem;margin-bottom:.5rem">\uD83D\uDD0D</p><p>Sin resultados</p></div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  var grid = document.createElement('div');
+  grid.className = 'grid';
+
+  filtered.forEach(function(item) {
+    var card = document.createElement('div');
+    card.className = 'card' + (item.activo ? '' : ' inactive');
+
+    // Image div
+    var imgDiv = document.createElement('div');
+    imgDiv.className = 'card-img';
+    imgDiv.innerHTML = '\uD83D\uDCE6';
+    if (item.imagenFile) {
+      (function(div, it) {
+        getImageUrl(it.imagenFile).then(function(url) {
+          if (url) {
+            var img = document.createElement('img');
+            img.src = url;
+            img.alt = it.nombre;
+            img.onclick = function() { openLightbox(url, it.nombre); };
+            div.innerHTML = '';
+            div.appendChild(img);
+          }
+        });
+      })(imgDiv, item);
+    }
+
+    // Model tags
+    var modelos = item.modelos || [];
+    var modeloTags = '';
+    if (modelos.length <= 2) {
+      modeloTags = modelos.map(function(m){return '<span class="tag tag-model">' + m + '</span>';}).join('');
+    } else if (modelos.length <= 4) {
+      modeloTags = '<span class="tag tag-model" title="' + modelos.join(', ') + '">' + modelos.length + ' modelos</span>';
+    } else {
+      modeloTags = '<span class="tag tag-model" title="' + modelos.join(', ') + '">Varios modelos</span>';
+    }
+
+    var precio = item.precio ? '<div class="card-price">$' + Number(item.precio).toLocaleString('es-CL') + '</div>' : '';
+
+    var bodyDiv = document.createElement('div');
+    bodyDiv.className = 'card-body';
+    bodyDiv.innerHTML =
+      '<div class="card-tags">' +
+        (item.marca ? '<span class="tag tag-brand">' + item.marca + '</span>' : '') +
+        modeloTags +
+      '</div>' +
+      '<div class="card-name">' + item.nombre + '</div>' +
+      (item.sku ? '<div class="card-sku">SKU: ' + item.sku + '</div>' : '') +
+      precio +
+      '<div class="card-footer">' +
+        '<div class="status-dot">' +
+          '<span class="dot ' + (item.activo ? 'on' : 'off') + '"></span>' +
+          '<span class="status-text">' + (item.activo ? 'Disponible' : 'No disponible') + '</span>' +
+        '</div>' +
+        '<label class="toggle">' +
+          '<input type="checkbox" ' + (item.activo ? 'checked' : '') + '/>' +
+          '<span class="slider"></span>' +
+        '</label>' +
+      '</div>';
+
+    // Inactive banner
+    if (!item.activo) {
+      var banner = document.createElement('span');
+      banner.className = 'inactive-banner';
+      banner.textContent = 'No disponible';
+      card.appendChild(banner);
+    }
+
+    card.appendChild(imgDiv);
+    card.appendChild(bodyDiv);
+
+    // Toggle event
+    var toggle = bodyDiv.querySelector('.toggle input');
+    if (toggle) {
+      (function(t, it, c) {
+        t.addEventListener('change', function() {
+          toggleActivo(it.id, t.checked);
+          c.classList.toggle('inactive', !t.checked);
+          c.querySelector('.dot').className = 'dot ' + (t.checked ? 'on' : 'off');
+          c.querySelector('.status-text').textContent = t.checked ? 'Disponible' : 'No disponible';
+        });
+      })(toggle, item, card);
+    }
+
+    grid.appendChild(card);
+  });
+
+  container.appendChild(grid);
+}
+
+document.getElementById('search').addEventListener('input', renderGrid);
+
+// LIGHTBOX
 function openLightbox(imgSrc, title) {
-  const lb = document.getElementById('lightbox');
   document.getElementById('lightbox-img').src = imgSrc;
   document.getElementById('lightbox-title').textContent = title || '';
-  lb.classList.add('show');
+  document.getElementById('lightbox').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
 
@@ -944,13 +668,14 @@ function closeLightbox() {
   document.body.style.overflow = '';
 }
 
-document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
+document.addEventListener('keydown', function(e) { if(e.key === 'Escape') closeLightbox(); });
 
+// TOAST
 function toast(msg) {
-  const t = document.getElementById('toast');
+  var t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+  setTimeout(function(){t.classList.remove('show');}, 3000);
 }
 </script>
 </body>
