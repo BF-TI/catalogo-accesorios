@@ -195,6 +195,9 @@
 
 <div id="toast"></div>
 
+<!-- SHEETJS -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+
 <!-- MSAL LIBRARY -->
 <script>/*! @azure/msal-browser v2.32.0 2022-11-22 */
 "use strict";!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t((e="undefined"!=typeof globalThis?globalThis:e||self).msal={})}(this,(function(e){
@@ -386,13 +389,16 @@ async function loadData() {
     const drive = drivesData.value.find(d => d.name === CONFIG.driveRoot) || drivesData.value[0];
     driveId = drive.id;
 
-    // Read Excel
-    const excelUrl = "https://graph.microsoft.com/v1.0/drives/" + driveId + "/items/" + CONFIG.excelFileId + "/workbook/worksheets/" + CONFIG.sheetName + "/usedRange";
+    // Download Excel file and parse locally with SheetJS
+    const excelUrl = "https://graph.microsoft.com/v1.0/drives/" + driveId + "/items/" + CONFIG.excelFileId + "/content";
     const res = await fetch(excelUrl, { headers: { Authorization: "Bearer " + token } });
     if (!res.ok) throw new Error("Excel: " + res.status);
 
-    const json = await res.json();
-    allData = parseExcel(json.values);
+    const arrayBuffer = await res.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: "array" });
+    const sheet = workbook.Sheets[CONFIG.sheetName] || workbook.Sheets[workbook.SheetNames[0]];
+    const values = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    allData = parseExcel(values);
     showBrandScreen();
     toast("\u2713 " + allData.length + " accesorios cargados");
   } catch(e) {
