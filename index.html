@@ -496,6 +496,8 @@ function selectBrand(brand) {
 // FILTERS
 function buildFilters() {
   var baseData = allData.filter(function(d){return d.marcas.indexOf(activeFilters.brand) >= 0;});
+  
+  // Models: only from single-brand accessories
   var models = [];
   baseData.forEach(function(d) {
     if (d.marcas.length === 1) {
@@ -506,9 +508,14 @@ function buildFilters() {
   });
   models.sort();
 
+  // Categories: filtered by selected model
+  var catData = baseData;
+  if (activeFilters.model) {
+    catData = baseData.filter(function(d){return d.modelos.indexOf(activeFilters.model) >= 0;});
+  }
   var cats = [];
-  baseData.forEach(function(d) {
-    if (d.categoria && cats.indexOf(d.categoria) < 0) cats.push(d.categoria);
+  catData.forEach(function(d) {
+    if (d.categoria && d.activo && cats.indexOf(d.categoria) < 0) cats.push(d.categoria);
   });
   cats.sort();
 
@@ -527,12 +534,16 @@ function renderFilterList(containerId, items, filterKey) {
   c.appendChild(allBtn);
 
   items.forEach(function(item) {
-    var baseData = allData.filter(function(d){return d.marcas.indexOf(activeFilters.brand) >= 0;});
+    var baseData = allData.filter(function(d){return d.marcas.indexOf(activeFilters.brand) >= 0 && d.activo;});
     var count;
     if (filterKey === 'model') {
-      count = baseData.filter(function(d){return d.marcas.length === 1 && d.modelos.indexOf(item) >= 0;}).length;
+      count = baseData.filter(function(d){return d.modelos.indexOf(item) >= 0;}).length;
     } else {
-      count = baseData.filter(function(d){return d.categoria === item;}).length;
+      var catBase = baseData;
+      if (activeFilters.model) {
+        catBase = baseData.filter(function(d){return d.modelos.indexOf(activeFilters.model) >= 0;});
+      }
+      count = catBase.filter(function(d){return d.categoria === item;}).length;
     }
     var btn = document.createElement('button');
     btn.className = 'filter-btn' + (activeFilters[filterKey] === item ? ' active' : '');
@@ -544,6 +555,7 @@ function renderFilterList(containerId, items, filterKey) {
 
 function setFilter(key, value) {
   activeFilters[key] = value;
+  if (key === 'model') activeFilters.category = null;
   buildFilters();
   renderGrid();
 }
